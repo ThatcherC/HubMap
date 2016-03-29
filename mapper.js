@@ -16,21 +16,24 @@ base_url+="key="+configs.api_key+"&";
 
 //Precomputed distances request:
 //Next to Vassar and Mass Ave, walking
-var origin = "enc:"+polyline.encode([nexthouse])+":";
-var destinations = "enc:"+polyline.encode([stations["Vassar"],stations["Mass Ave"]])+":";
-var req_url = base_url;
-req_url += "origins="+origin+"&";
-req_url += "destinations="+destinations+"&";
-req_url += "mode=walking"
+var initialWalking = getMatrix([nexthouse],[stations["Vassar"],stations["Mass Ave"]],"walking");
+console.log(initialWalking);
 
-https.get(req_url,function(res){
-  var data = "";
-  var matrix = {};
-  res.on('data', function(chunk){
-    data+=chunk;
+function getMatrix(origins,destinations,mode){
+  var origin = "enc:"+polyline.encode([nexthouse])+":";
+  var destinations = "enc:"+polyline.encode([stations["Vassar"],stations["Mass Ave"]])+":";
+  var req_url = base_url;
+  req_url += "origins="+origin+"&";
+  req_url += "destinations="+destinations+"&";
+  req_url += "mode=walking"
+
+  https.get(req_url,function(res){
+    var data = "";
+    res.on('data', function(chunk){
+      data+=chunk;
+    });
+    res.on('end',function(){
+      return JSON.parse(data).rows;
+    });
   });
-  res.on('end',function(){
-    matrix = JSON.parse(data).rows;
-    console.log(matrix);
-  });
-});
+}
