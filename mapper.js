@@ -16,14 +16,29 @@ base_url+="key="+configs.api_key+"&";
 
 //Precomputed distances request:
 //Next to Vassar and Mass Ave, walking
+//Vassar and Mass Ave to other stations (including Mass Ave)
+var initialWalking = {};
+var stationBiking = {};
+
 getMatrix([nexthouse],[stations["Vassar"],stations["Mass Ave"]],"walking",function(matrix){
-  console.log(matrix);
+  initialWalking = matrix;
 });
 
+getMatrix([stations["Vassar"],stations["Mass Ave"]],
+          [stations["Mass Ave"],stations["Stata"],stations["Ames"],stations["Kendall"]],
+          "biking",
+          function(matrix){
+            stationBiking = matrix;
+          });
+
+setTimeout(function(){
+  console.log(initialWalking);
+  console.log(stationBiking);
+},1000);
 
 function getMatrix(origins,destinations,mode,callback){
-  var origin = "enc:"+polyline.encode([nexthouse])+":";
-  var destinations = "enc:"+polyline.encode([stations["Vassar"],stations["Mass Ave"]])+":";
+  var origin = "enc:"+polyline.encode(origins)+":";
+  var destinations = "enc:"+polyline.encode(destinations)+":";
   var req_url = base_url;
   req_url += "origins="+origin+"&";
   req_url += "destinations="+destinations+"&";
