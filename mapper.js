@@ -32,8 +32,8 @@ getMatrix([stations["Vassar"],stations["Mass Ave"]],
           });
 
 setTimeout(function(){
-  console.log(initialWalking);
-  console.log(stationBiking);
+  console.log(JSON.stringify(initialWalking));
+  console.log(JSON.stringify(stationBiking));
 },1000);
 
 function getMatrix(origins,destinations,mode,callback){
