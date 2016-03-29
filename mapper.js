@@ -16,10 +16,12 @@ base_url+="key="+configs.api_key+"&";
 
 //Precomputed distances request:
 //Next to Vassar and Mass Ave, walking
-var initialWalking = getMatrix([nexthouse],[stations["Vassar"],stations["Mass Ave"]],"walking");
-console.log(initialWalking);
+getMatrix([nexthouse],[stations["Vassar"],stations["Mass Ave"]],"walking",function(matrix){
+  console.log(matrix);
+});
 
-function getMatrix(origins,destinations,mode){
+
+function getMatrix(origins,destinations,mode,callback){
   var origin = "enc:"+polyline.encode([nexthouse])+":";
   var destinations = "enc:"+polyline.encode([stations["Vassar"],stations["Mass Ave"]])+":";
   var req_url = base_url;
@@ -33,7 +35,7 @@ function getMatrix(origins,destinations,mode){
       data+=chunk;
     });
     res.on('end',function(){
-      return JSON.parse(data).rows;
+      callback(JSON.parse(data).rows);
     });
   });
 }
