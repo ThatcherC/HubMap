@@ -2,12 +2,12 @@ var https = require("https");
 var polyline = require('polyline');
 var configs = require('./config');
 
-var stations = [];
-stations["Vassar"] = [42.355701, -71.103954];
-stations["Mass Ave"] = [42.358090, -71.093176];
-stations["Stata"] = [42.361989, -71.092061];
-stations["Ames"] = [42.362536, -71.088188];
-stations["Kendall"] = [42.362482, -71.085124];
+var stations =
+ [[42.355701, -71.103954],     //Vassar
+  [42.358090, -71.093176],   //Mass Ave
+  [42.361989, -71.092061],      //Stata
+  [42.362536, -71.088188],       //Ames
+  [42.362482, -71.085124]];   //Kendall
 
 var nexthouse = [42.355005, -71.101438];
 
@@ -20,12 +20,12 @@ base_url+="key="+configs.api_key+"&";
 var initialWalking = {};
 var stationBiking = {};
 
-getMatrix([nexthouse],[stations["Vassar"],stations["Mass Ave"]],"walking",function(matrix){
+getMatrix([nexthouse],[stations[0],stations[1]],"walking",function(matrix){
   initialWalking = matrix;
 });
 
-getMatrix([stations["Vassar"],stations["Mass Ave"]],
-          [stations["Mass Ave"],stations["Stata"],stations["Ames"],stations["Kendall"]],
+getMatrix([stations[0],stations[1]],
+          [stations[1],stations[2],stations[3],stations[4]],
           "biking",
           function(matrix){
             stationBiking = matrix;
@@ -36,13 +36,27 @@ setTimeout(function(){
   console.log(JSON.stringify(stationBiking));
 },1000);
 
+for(p in points){
+  //get walking
+  getMatrix([p],[stations[0],stations[1]],"walking",function(matrix){
+    //add time to database
+    matrix.rows[0].elements[0].duration.value;
+  });
+
+  //get biking
+  getMatrix([p],[stations[1],stations[2],stations[3],stations[4]],"biking",function(matrix){
+
+  });
+}
+
 function getMatrix(origins,destinations,mode,callback){
   var origin = "enc:"+polyline.encode(origins)+":";
   var destinations = "enc:"+polyline.encode(destinations)+":";
   var req_url = base_url;
   req_url += "origins="+origin+"&";
   req_url += "destinations="+destinations+"&";
-  req_url += "mode=walking"
+  req_url += "mode="+mode;
+  console.log(req_url);
 
   https.get(req_url,function(res){
     var data = "";
