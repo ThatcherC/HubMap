@@ -19,8 +19,6 @@ var originStations = [0,1];
 //==========Computed arrays=======================
 var bikingDestinations = stations.slice(0);   //locations to bike to
 var bikingOrigins = [];        //locations to bike from
-
-
 for(var o=0; o<originStations.length; o++){
   //add each origin station to bikingOrigins
   bikingOrigins.push(stations[o]);
@@ -30,10 +28,6 @@ for(var o=0; o<originStations.length; o++){
 
 var walkingOrigins = bikingDestinations.slice(0);
 walkingOrigins.unshift(origin);
-
-console.log(stations);
-console.log(bikingOrigins);
-console.log(bikingDestinations);
 //=================================================
 
 var base_url = "https://maps.googleapis.com/maps/api/distancematrix/json?"
@@ -51,8 +45,11 @@ getMatrix(bikingOrigins,bikingDestinations,"biking",function(matrix){
 });
 
 setTimeout(function(){
+  console.log(bikingOrigins);
+  console.log(bikingDestinations);
   console.log("Walking to origin station[s]: "+JSON.stringify(initialWalking));
   console.log("Biking between stations: "+JSON.stringify(stationBiking));
+  console.log(walkingOrigins.length);
 },1000);
 /*
 for(p in points){
