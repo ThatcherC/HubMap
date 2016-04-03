@@ -38,19 +38,28 @@ var stationBiking = {};
 
 getMatrix(bikingOrigins,[origin],"walking",function(matrix){
   initialWalking = matrix;
+  var time = initialWalking[0][0];
+  for(var row = 0; row<originStations.length;row++){
+    initialWalking[row] = [];
+    for(var element = 0; element<bikingDestinations.length;element++){
+        initialWalking[row].unshift(time);
+    }
+    initialWalking[row].unshift(0);
+  }
 });
 
 getMatrix(bikingOrigins,bikingDestinations,"biking",function(matrix){
   stationBiking = matrix;
+  for(var row = 0; row<stationBiking.length;row++){
+    stationBiking[row].unshift(0);
+  }
 });
 
 setTimeout(function(){
-  console.log(bikingOrigins);
-  console.log(bikingDestinations);
-  console.log("Walking to origin station[s]: "+JSON.stringify(initialWalking));
-  console.log("Biking between stations: "+JSON.stringify(stationBiking));
+  console.log("Walking to origin station(s): "+JSON.stringify(initialWalking));
+  console.log("Biking between stations:      "+JSON.stringify(stationBiking));
   console.log(walkingOrigins.length);
-},1000);
+},2000);
 /*
 for(p in points){
   //get walking
@@ -76,7 +85,7 @@ function getMatrix(origins,destinations,mode,callback){
     });
     res.on('end',function(){
       var obj = JSON.parse(data);
-      console.log(obj.status);
+      console.log("Request status: "+obj.status);
       obj = obj.rows;
       var matrix = [[]];
       for(var row = 0; row < obj.length; row++){
