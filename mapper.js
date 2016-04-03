@@ -2,14 +2,30 @@ var https = require("https");
 var polyline = require('polyline');
 var configs = require('./config');
 
+//=========User defined information===============
+//list of Hubway Stations
 var stations =
  [[42.355701, -71.103954],     //Vassar
   [42.358090, -71.093176],   //Mass Ave
   [42.361989, -71.092061],      //Stata
   [42.362536, -71.088188],       //Ames
   [42.362482, -71.085124]];   //Kendall
+//Starting point
+var origin = [42.355005, -71.101438];
+//Indices of origin states (could be computed)
+var originStations = [0];
 
-var nexthouse = [42.355005, -71.101438];
+//==========Computed arrays=======================
+var bikingDestinations = stations;   //locations to bike to
+var bikingOrigins = [];        //locations to bike from
+for(var o=0; o<originStations.length; o++){
+  //add each origin station to bikingOrigins
+  bikingOrigins.push(stations[o]);
+  //remove each origin stations from bikingDestinations
+  bikingDestinations.splice(bikingDestinations.indexOf(stations[originStations[o]]),1);
+}
+var walkingOrigins = bikingDestinations.unshift(origin);
+//=================================================
 
 var base_url = "https://maps.googleapis.com/maps/api/distancematrix/json?"
 base_url+="key="+configs.api_key+"&";
@@ -20,32 +36,24 @@ base_url+="key="+configs.api_key+"&";
 var initialWalking = {};
 var stationBiking = {};
 
-getMatrix([nexthouse],[stations[0],stations[1]],"walking",function(matrix){
+getMatrix([origin],bikingOrigins,"walking",function(matrix){
   initialWalking = matrix;
 });
 
-getMatrix([stations[0],stations[1]],
-          [stations[1],stations[2],stations[3],stations[4]],
-          "biking",
-          function(matrix){
-            stationBiking = matrix;
-          });
+getMatrix(bikingOrigins,bikingDestinations,"biking",function(matrix){
+  stationBiking = matrix;
+});
 
 setTimeout(function(){
-  console.log("Waling to stations: "+JSON.stringify(initialWalking));
+  console.log("Walking to stations: "+JSON.stringify(initialWalking));
   console.log("Biking between stations: "+JSON.stringify(stationBiking));
 },1000);
 /*
 for(p in points){
   //get walking
-  getMatrix([p],[stations[0],stations[1]],"walking",function(matrix){
-    //add time to database
-    matrix.rows[0].elements[0].duration.value;
-  });
-
-  //get biking
-  getMatrix([p],[stations[1],stations[2],stations[3],stations[4]],"biking",function(matrix){
-
+  getMatrix([p],walkingOrigins,"walking",function(matrix){
+    var tmp = addMatrices(stationBiking,matrix);
+    var times = addMatrices(tmp,initialWalking);
   });
 }
 */
