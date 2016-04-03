@@ -32,10 +32,10 @@ getMatrix([stations[0],stations[1]],
           });
 
 setTimeout(function(){
-  console.log(JSON.stringify(initialWalking));
-  console.log(JSON.stringify(stationBiking));
+  console.log("Waling to stations: "+JSON.stringify(initialWalking));
+  console.log("Biking between stations: "+JSON.stringify(stationBiking));
 },1000);
-
+/*
 for(p in points){
   //get walking
   getMatrix([p],[stations[0],stations[1]],"walking",function(matrix){
@@ -48,7 +48,7 @@ for(p in points){
 
   });
 }
-
+*/
 function getMatrix(origins,destinations,mode,callback){
   var origin = "enc:"+polyline.encode(origins)+":";
   var destinations = "enc:"+polyline.encode(destinations)+":";
@@ -56,7 +56,7 @@ function getMatrix(origins,destinations,mode,callback){
   req_url += "origins="+origin+"&";
   req_url += "destinations="+destinations+"&";
   req_url += "mode="+mode;
-  console.log(req_url);
+  //console.log(req_url);
 
   https.get(req_url,function(res){
     var data = "";
@@ -64,7 +64,17 @@ function getMatrix(origins,destinations,mode,callback){
       data+=chunk;
     });
     res.on('end',function(){
-      callback(JSON.parse(data).rows);
+      var obj = JSON.parse(data);
+      console.log(obj.status);
+      obj = obj.rows;
+      var matrix = [[]];
+      for(var row = 0; row < obj.length; row++){
+        matrix[row] = [];
+        for(var element = 0; element < obj[row].elements.length; element++){
+          matrix[row][element] = obj[row].elements[element].duration.value;
+        }
+      }
+      callback(matrix);
     });
   });
 }
