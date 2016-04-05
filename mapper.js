@@ -101,7 +101,7 @@ setTimeout(function(){
 },2000);
 
 function endFunction(){
-  console.log("=============Begin GeoJSON=============\n");
+  console.log("\n=============Begin GeoJSON=============\n");
   console.log(JSON.stringify(GeoJSON.parse(data,{Point: ['lat', 'lng']})));
   console.log("\n==============End GeoJSON==============\n");
 }
@@ -194,8 +194,7 @@ function getMatrix(origins,destinations,mode,callback){
         callback(matrix,obj.error);
       }else{
         if(obj.rows[0].elements[0].status!="OK"){
-          callback(matrix,obj.rows[0].elements[0].status);
-          console.log(JSON.stringify(obj));
+          callback(matrix,"Error at "+obj.origin_addresses+": "+obj.rows[0].elements[0].status);
         }else{
           for(var row = 0; row < obj.rows.length; row++){
             matrix[row] = [];
