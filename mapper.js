@@ -1,6 +1,7 @@
 var https = require("https");
 var polyline = require('polyline');
 var configs = require('./config');
+var GeoJSON = require('geojson');
 
 //=========User defined information===============
 //list of Hubway Stations
@@ -37,6 +38,9 @@ var initialWalking = {};
 var stationBiking = {};
 var sumTimes = {};
 
+//where to store all the information we gather
+var data = [];
+
 getMatrix(getLocationList(bikingOrigins),getLocationList([origin]),"walking",function(matrix){
   initialWalking = matrix.slice(0);
   for(var row = 0; row<originStations.length;row++){
@@ -60,7 +64,7 @@ setTimeout(function(){
   console.log("Walking to origin station(s): "+JSON.stringify(initialWalking));
   console.log("Biking between stations:      "+JSON.stringify(stationBiking));
   sumTimes = addMatrices(initialWalking,stationBiking);
-  evaluatePoint([42.355720, -71.100298]);
+  evaluatePoint([42.358126, -71.094397]);
   evaluatePoint([42.361151, -71.089666]);
 },2000);
 /*
@@ -84,7 +88,32 @@ function evaluatePoint(location){
       fullMatrix.push(matrix[0]);
     }
 
-    console.log(JSON.stringify(addMatrices(sumTimes,fullMatrix)));
+    var totalTimes = addMatrices(sumTimes,fullMatrix);
+
+    //sort and evaluate times
+    var minTime = 10000;
+    var minRow = 0;
+    var minCol = 0;
+    for(var row = 0; row<totalTimes.length; row++){
+      for(var el = 0; el<totalTimes[0].length; el++){
+        if(totalTimes[row][el]<minTime){
+          minTime = totalTimes[row][el];
+          minRow = row;
+          minCol = el;
+        }
+      }
+    }
+    //interpret min time
+    var route = "";
+
+    if(minCol==0){
+      route = "Walk from "+origin.name;
+    }else{
+      route = "Walk to "+stations[originStations[minRow]].name+", then bike to "+bikingDestinations[minCol-1].name;
+    }
+
+    data.push({'location':location,'time':minTime,'route':route});
+
   });
 }
 
