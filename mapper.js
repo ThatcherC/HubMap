@@ -22,8 +22,8 @@ var SW = [42.355119, -71.097454];
 var NW = [42.361115, -71.100306];
 var SE = [42.359972, -71.084041];
 
-var stepsNorth = 5;
-var stepsEast = 10;
+var stepsNorth = 2;
+var stepsEast = 4;
 
 //==========Computed arrays=======================
 var bikingDestinations = stations.slice(0);   //locations to bike to
@@ -48,29 +48,40 @@ var sumTimes = {};
 
 //where to store all the information we gather
 var data = [];
+var errorFlag = false;
 
-getMatrix(getLocationList(bikingOrigins),getLocationList([origin]),"walking",function(matrix){
-  initialWalking = matrix.slice(0);
-  for(var row = 0; row<originStations.length;row++){
-    initialWalking[row] = [];
-    var time = matrix[row][0];
-    for(var element = 0; element<bikingDestinations.length;element++){
-        initialWalking[row].unshift(time);
+getMatrix(getLocationList(bikingOrigins),getLocationList([origin]),"walking",function(matrix,error){
+  if(error){
+    console.log(error);
+    errorFlag = true;
+  }else{
+    initialWalking = matrix.slice(0);
+    for(var row = 0; row<originStations.length;row++){
+      initialWalking[row] = [];
+      var time = matrix[row][0];
+      for(var element = 0; element<bikingDestinations.length;element++){
+          initialWalking[row].unshift(time);
+      }
+      initialWalking[row].unshift(0);
     }
-    initialWalking[row].unshift(0);
   }
 });
 
-getMatrix(getLocationList(bikingOrigins),getLocationList(bikingDestinations),"biking",function(matrix){
-  stationBiking = matrix;
-  for(var row = 0; row<stationBiking.length;row++){
-    stationBiking[row].unshift(0);
+getMatrix(getLocationList(bikingOrigins),getLocationList(bikingDestinations),"biking",function(matrix,error){
+  if(error){
+    console.log(error);
+    errorFlag = true;
+  }else{
+    stationBiking = matrix;
+    for(var row = 0; row<stationBiking.length;row++){
+      stationBiking[row].unshift(0);
+    }
   }
 });
 
 
 
-var interval = setTimeout(function(){},20000);
+var interval = setTimeout(endFunction,30000);
 
 var deltaNorth = [(NW[0]-SW[0])/stepsNorth, (NW[1]-SW[1])/stepsNorth];
 var deltaEast = [(SE[0]-SW[0])/stepsEast, (SE[1]-SW[1])/stepsEast];
@@ -79,58 +90,62 @@ setTimeout(function(){
   console.log("Walking to origin station(s): "+JSON.stringify(initialWalking));
   console.log("Biking between stations:      "+JSON.stringify(stationBiking));
   sumTimes = addMatrices(initialWalking,stationBiking);
+  var count = 0;
   for(var x = 0; x < stepsEast; x++){
     for(var y = 0; y < stepsNorth; y++){
       var point = [SW[0]+x*deltaEast[0]+y*deltaNorth[0], SW[1]+x*deltaEast[1]+y*deltaNorth[1]]
-      evaluatePoint(point);
+      setTimeout(evaluatePoint,count*1000,point);
+      count++;
     }
   }
 },2000);
 
 function endFunction(){
+  console.log("=============Begin GeoJSON=============\n");
   console.log(JSON.stringify(GeoJSON.parse(data,{Point: ['lat', 'lng']})));
+  console.log("\n==============End GeoJSON==============\n");
 }
 
 function evaluatePoint(location){
   var l = getLocationList(bikingDestinations);
   l.unshift(origin.location);
 
-  getMatrix([location],l,"walking",function(matrix){
-    clearTimeout(interval);
-    interval = setTimeout(endFunction(),5000);
+  getMatrix([location],l,"walking",function(matrix,error){
+    if(error){
+      console.log(error);
+    }else{
+      var fullMatrix = [];
+      //need to match dimensions
+      for(var i = 0; i < originStations.length;i++){
+        fullMatrix.push(matrix[0]);
+      }
 
-    var fullMatrix = [];
-    //need to match dimensions
-    for(var i = 0; i < originStations.length;i++){
-      fullMatrix.push(matrix[0]);
-    }
+      var totalTimes = addMatrices(sumTimes,fullMatrix);
 
-    var totalTimes = addMatrices(sumTimes,fullMatrix);
-
-    //sort and evaluate times
-    var minTime = 10000;
-    var minRow = 0;
-    var minCol = 0;
-    for(var row = 0; row<totalTimes.length; row++){
-      for(var el = 0; el<totalTimes[0].length; el++){
-        if(totalTimes[row][el]<minTime){
-          minTime = totalTimes[row][el];
-          minRow = row;
-          minCol = el;
+      //sort and evaluate times
+      var minTime = 10000;
+      var minRow = 0;
+      var minCol = 0;
+      for(var row = 0; row<totalTimes.length; row++){
+        for(var el = 0; el<totalTimes[0].length; el++){
+          if(totalTimes[row][el]<minTime){
+            minTime = totalTimes[row][el];
+            minRow = row;
+            minCol = el;
+          }
         }
       }
+      //interpret min time
+      var route = "";
+
+      if(minCol==0){
+        route = "Walk from "+origin.name;
+      }else{
+        route = "Walk to "+stations[originStations[minRow]].name+", then bike to "+bikingDestinations[minCol-1].name;
+      }
+
+      data.push({'lat':location[0],'lng':location[1],'time':minTime,'route':route});
     }
-    //interpret min time
-    var route = "";
-
-    if(minCol==0){
-      route = "Walk from "+origin.name;
-    }else{
-      route = "Walk to "+stations[originStations[minRow]].name+", then bike to "+bikingDestinations[minCol-1].name;
-    }
-
-    data.push({'lat':location[0],'lng':location[1],'time':minTime,'route':route});
-
   });
 }
 
@@ -173,16 +188,24 @@ function getMatrix(origins,destinations,mode,callback){
     });
     res.on('end',function(){
       var obj = JSON.parse(data);
-      console.log("Request status: "+obj.status);
-      obj = obj.rows;
       var matrix = [[]];
-      for(var row = 0; row < obj.length; row++){
-        matrix[row] = [];
-        for(var element = 0; element < obj[row].elements.length; element++){
-          matrix[row][element] = obj[row].elements[element].duration.value;
+
+      if(obj.status!='OK'){
+        callback(matrix,obj.error);
+      }else{
+        if(obj.rows[0].elements[0].status!="OK"){
+          callback(matrix,obj.rows[0].elements[0].status);
+          console.log(JSON.stringify(obj));
+        }else{
+          for(var row = 0; row < obj.rows.length; row++){
+            matrix[row] = [];
+            for(var element = 0; element < obj.rows[row].elements.length; element++){
+              matrix[row][element] = obj.rows[row].elements[element].duration.value;
+            }
+          }
+          callback(matrix,null);
         }
       }
-      callback(matrix);
     });
   });
 }
