@@ -4,15 +4,15 @@ var configs = require('./config');
 
 //=========User defined information===============
 //list of Hubway Stations
-var stations =
- [[42.355701, -71.103954],     //Vassar
-  [42.358090, -71.093176],   //Mass Ave
-  [42.361989, -71.092061],      //Stata
-  [42.362536, -71.088188],       //Ames
-  [42.362482, -71.085124]];   //Kendall
+var stations = [{name:"Vassar",  location:[42.355701, -71.103954]},     //Vassar
+                {name:"Mass Ave",location:[42.358090, -71.093176]},   //Mass Ave
+                {name:"Stata",   location:[42.361989, -71.092061]},      //Stata
+                {name:"Ames",    location:[42.362536, -71.088188]},       //Ames
+                {name:"Kendall", location:[42.362482, -71.085124]}];   //Kendall
 
 //Starting point
-var origin = [42.355005, -71.101438];
+var origin = {name:"Next House",location:[42.355005, -71.101438]}
+;
 //Indices of origin states (could be computed)
 var originStations = [0,1];
 
@@ -36,11 +36,11 @@ base_url+="key="+configs.api_key+"&";
 var initialWalking = {};
 var stationBiking = {};
 
-getMatrix(bikingOrigins,[origin],"walking",function(matrix){
-  initialWalking = matrix;
-  var time = initialWalking[0][0];
+getMatrix(getLocationList(bikingOrigins),getLocationList([origin]),"walking",function(matrix){
+  initialWalking = matrix.slice(0);
   for(var row = 0; row<originStations.length;row++){
     initialWalking[row] = [];
+    var time = matrix[row][0];
     for(var element = 0; element<bikingDestinations.length;element++){
         initialWalking[row].unshift(time);
     }
@@ -48,7 +48,7 @@ getMatrix(bikingOrigins,[origin],"walking",function(matrix){
   }
 });
 
-getMatrix(bikingOrigins,bikingDestinations,"biking",function(matrix){
+getMatrix(getLocationList(bikingOrigins),getLocationList(bikingDestinations),"biking",function(matrix){
   stationBiking = matrix;
   for(var row = 0; row<stationBiking.length;row++){
     stationBiking[row].unshift(0);
@@ -58,7 +58,6 @@ getMatrix(bikingOrigins,bikingDestinations,"biking",function(matrix){
 setTimeout(function(){
   console.log("Walking to origin station(s): "+JSON.stringify(initialWalking));
   console.log("Biking between stations:      "+JSON.stringify(stationBiking));
-  console.log(walkingOrigins.length);
 },2000);
 /*
 for(p in points){
@@ -69,6 +68,15 @@ for(p in points){
   });
 }
 */
+
+function getLocationList(a){
+  var out = [];
+  for(var c=0;c<a.length;c++){
+    out[out.length] = a[c].location;
+  }
+  return out;
+}
+
 function getMatrix(origins,destinations,mode,callback){
   var origin = "enc:"+polyline.encode(origins)+":";
   var destinations = "enc:"+polyline.encode(destinations)+":";
