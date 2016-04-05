@@ -35,6 +35,7 @@ base_url+="key="+configs.api_key+"&";
 
 var initialWalking = {};
 var stationBiking = {};
+var sumTimes = {};
 
 getMatrix(getLocationList(bikingOrigins),getLocationList([origin]),"walking",function(matrix){
   initialWalking = matrix.slice(0);
@@ -58,6 +59,9 @@ getMatrix(getLocationList(bikingOrigins),getLocationList(bikingDestinations),"bi
 setTimeout(function(){
   console.log("Walking to origin station(s): "+JSON.stringify(initialWalking));
   console.log("Biking between stations:      "+JSON.stringify(stationBiking));
+  sumTimes = addMatrices(initialWalking,stationBiking);
+  evaluatePoint([42.355720, -71.100298]);
+  evaluatePoint([42.361151, -71.089666]);
 },2000);
 /*
 for(p in points){
@@ -68,6 +72,36 @@ for(p in points){
   });
 }
 */
+
+function evaluatePoint(location){
+  var l = getLocationList(bikingDestinations);
+  l.unshift(origin.location);
+
+  getMatrix([location],l,"walking",function(matrix){
+    var fullMatrix = [];
+    //need to match dimensions
+    for(var i = 0; i < originStations.length;i++){
+      fullMatrix.push(matrix[0]);
+    }
+
+    console.log(JSON.stringify(addMatrices(sumTimes,fullMatrix)));
+  });
+}
+
+function addMatrices(a,b){
+  if(a.length!=b.length || a[0].length!=b[0].length){
+    console.log("Matrix dimensions don't match!");
+    return null;
+  }
+  var out = [];
+  for(var row = 0; row<a.length; row++){
+    out[row] = [];
+    for(var el = 0; el<a[0].length; el++){
+      out[row].push(a[row][el]+b[row][el]);
+    }
+  }
+  return out;
+}
 
 function getLocationList(a){
   var out = [];
