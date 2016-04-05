@@ -17,6 +17,14 @@ var origin = {name:"Next House",location:[42.355005, -71.101438]}
 //Indices of origin states (could be computed)
 var originStations = [0,1];
 
+//boundary corners
+var SW = [42.355119, -71.097454];
+var NW = [42.361115, -71.100306];
+var SE = [42.359972, -71.084041];
+
+var stepsNorth = 5;
+var stepsEast = 10;
+
 //==========Computed arrays=======================
 var bikingDestinations = stations.slice(0);   //locations to bike to
 var bikingOrigins = [];        //locations to bike from
@@ -60,28 +68,37 @@ getMatrix(getLocationList(bikingOrigins),getLocationList(bikingDestinations),"bi
   }
 });
 
+
+
+var interval = setTimeout(function(){},20000);
+
+var deltaNorth = [(NW[0]-SW[0])/stepsNorth, (NW[1]-SW[1])/stepsNorth];
+var deltaEast = [(SE[0]-SW[0])/stepsEast, (SE[1]-SW[1])/stepsEast];
+
 setTimeout(function(){
   console.log("Walking to origin station(s): "+JSON.stringify(initialWalking));
   console.log("Biking between stations:      "+JSON.stringify(stationBiking));
   sumTimes = addMatrices(initialWalking,stationBiking);
-  evaluatePoint([42.358126, -71.094397]);
-  evaluatePoint([42.361151, -71.089666]);
+  for(var x = 0; x < stepsEast; x++){
+    for(var y = 0; y < stepsNorth; y++){
+      var point = [SW[0]+x*deltaEast[0]+y*deltaNorth[0], SW[1]+x*deltaEast[1]+y*deltaNorth[1]]
+      evaluatePoint(point);
+    }
+  }
 },2000);
-/*
-for(p in points){
-  //get walking
-  getMatrix([p],walkingOrigins,"walking",function(matrix){
-    var tmp = addMatrices(stationBiking,matrix);
-    var times = addMatrices(tmp,initialWalking);
-  });
+
+function endFunction(){
+  console.log(JSON.stringify(GeoJSON.parse(data,{Point: ['lat', 'lng']})));
 }
-*/
 
 function evaluatePoint(location){
   var l = getLocationList(bikingDestinations);
   l.unshift(origin.location);
 
   getMatrix([location],l,"walking",function(matrix){
+    clearTimeout(interval);
+    interval = setTimeout(endFunction(),5000);
+
     var fullMatrix = [];
     //need to match dimensions
     for(var i = 0; i < originStations.length;i++){
@@ -112,7 +129,7 @@ function evaluatePoint(location){
       route = "Walk to "+stations[originStations[minRow]].name+", then bike to "+bikingDestinations[minCol-1].name;
     }
 
-    data.push({'location':location,'time':minTime,'route':route});
+    data.push({'lat':location[0],'lng':location[1],'time':minTime,'route':route});
 
   });
 }
