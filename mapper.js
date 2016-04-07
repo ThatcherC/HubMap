@@ -22,8 +22,8 @@ var SW = [42.355119, -71.097454];
 var NW = [42.361115, -71.100306];
 var SE = [42.359972, -71.084041];
 
-var stepsNorth = 2;
-var stepsEast = 4;
+var stepsNorth = 22;
+var stepsEast = 44;
 
 //==========Computed arrays=======================
 var bikingDestinations = stations.slice(0);   //locations to bike to
@@ -81,7 +81,7 @@ getMatrix(getLocationList(bikingOrigins),getLocationList(bikingDestinations),"bi
 
 
 
-var interval = setTimeout(endFunction,30000);
+var interval = setTimeout(endFunction,stepsEast*stepsNorth*100+10000);
 
 var deltaNorth = [(NW[0]-SW[0])/stepsNorth, (NW[1]-SW[1])/stepsNorth];
 var deltaEast = [(SE[0]-SW[0])/stepsEast, (SE[1]-SW[1])/stepsEast];
