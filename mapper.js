@@ -2,6 +2,7 @@ var https = require("https");
 var polyline = require('polyline');
 var configs = require('./config');
 var GeoJSON = require('geojson');
+var fs = require('fs');
 
 //=========User defined information===============
 //list of Hubway Stations
@@ -22,8 +23,8 @@ var SW = [42.355119, -71.097454];
 var NW = [42.361115, -71.100306];
 var SE = [42.359972, -71.084041];
 
-var stepsNorth = 22;
-var stepsEast = 44;
+var stepsNorth = 3;
+var stepsEast = 6;
 
 //==========Computed arrays=======================
 var bikingDestinations = stations.slice(0);   //locations to bike to
@@ -81,14 +82,12 @@ getMatrix(getLocationList(bikingOrigins),getLocationList(bikingDestinations),"bi
 
 
 
-var interval = setTimeout(endFunction,stepsEast*stepsNorth*100+10000);
+var interval = setTimeout(endFunction,stepsEast*stepsNorth*1000+1000);
 
 var deltaNorth = [(NW[0]-SW[0])/stepsNorth, (NW[1]-SW[1])/stepsNorth];
 var deltaEast = [(SE[0]-SW[0])/stepsEast, (SE[1]-SW[1])/stepsEast];
 
 setTimeout(function(){
-  console.log("Walking to origin station(s): "+JSON.stringify(initialWalking));
-  console.log("Biking between stations:      "+JSON.stringify(stationBiking));
   sumTimes = addMatrices(initialWalking,stationBiking);
   var count = 0;
   for(var x = 0; x < stepsEast; x++){
@@ -98,12 +97,26 @@ setTimeout(function(){
       count++;
     }
   }
+  var locationdata = [];
+  locationdata.push({'lat':origin.location[0],'lng':origin.location[1],'name':origin.name});
+  for(var i =0; i < stations.length; i++){
+    locationdata.push({'lat':stations[i].location[0],'lng':stations[i].location[1],'name':stations[i].name});
+  }
+  console.log("\nWriting locations file to 'stations.json'");
+  fs.writeFile("stations.json",JSON.stringify(GeoJSON.parse(locationdata,{Point: ['lat', 'lng']}))),function(err){
+    if (err) {
+       return console.error("Error writing to file: "+err);
+    }
+  }
 },2000);
 
 function endFunction(){
-  console.log("\n=============Begin GeoJSON=============\n");
-  console.log(JSON.stringify(GeoJSON.parse(data,{Point: ['lat', 'lng']})));
-  console.log("\n==============End GeoJSON==============\n");
+  console.log("Writing GeoJSON file to 'timeData.json'\n");
+  fs.writeFile("timeData.json",JSON.stringify(GeoJSON.parse(data,{Point: ['lat', 'lng']}))),function(err){
+    if (err) {
+       return console.error("Error writing to file: "+err);
+    }
+  }
 }
 
 function evaluatePoint(location){
