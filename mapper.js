@@ -5,17 +5,18 @@ var GeoJSON = require('geojson');
 var fs = require('fs');
 
 //=========User defined information===============
-//list of Hubway Stations
+//Fill in your Hubway stations of interest
 var stations = [{name:"Vassar",  location:[42.355701, -71.103954]},     //Vassar
                 {name:"Mass Ave",location:[42.358090, -71.093176]},   //Mass Ave
                 {name:"Stata",   location:[42.361989, -71.092061]},      //Stata
                 {name:"Ames",    location:[42.362536, -71.088188]},       //Ames
                 {name:"Kendall", location:[42.362482, -71.085124]}];   //Kendall
 
-//Starting point
-var origin = {name:"Next House",location:[42.355005, -71.101438]}
-;
+//Fill in where you're starting from
+var origin = {name:"Next House",location:[42.355005, -71.101438]};
+
 //Indices of origin states (could be computed)
+//Fill in which stations you might walk to
 var originStations = [0,1];
 
 //boundary corners
@@ -23,8 +24,12 @@ var SW = [42.355119, -71.097454];
 var NW = [42.361115, -71.100306];
 var SE = [42.359972, -71.084041];
 
+
+//Determines resoltuion: higher numbers make more data points
 var stepsNorth = 3;
 var stepsEast = 6;
+
+//=======End User defined information=============
 
 //==========Computed arrays=======================
 var bikingDestinations = stations.slice(0);   //locations to bike to
