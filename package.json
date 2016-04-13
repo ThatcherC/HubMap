@@ -1,0 +1,34 @@
+{
+  "name": "hubmap",
+  "version": "1.0.0",
+  "description": "Make a map of the fastest routes on the Hubway",
+  "main": "mapper.js",
+  "dependencies": {
+    "geojson": "^0.3.0",
+    "mongoose": "^4.4.10",
+    "polyline": "^0.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node mapper.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThatcherC/HubMap.git"
+  },
+  "keywords": [
+    "hubway",
+    "bike",
+    "biking",
+    "map",
+    "cartodb",
+    "gis",
+    "geojson"
+  ],
+  "author": "Thatcher Chamberlin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ThatcherC/HubMap/issues"
+  },
+  "homepage": "https://github.com/ThatcherC/HubMap#readme"
+}
